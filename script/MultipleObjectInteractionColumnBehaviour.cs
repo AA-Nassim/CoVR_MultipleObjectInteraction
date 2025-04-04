@@ -6,6 +6,15 @@ using UnityEngine.Events;
 
 public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 {
+
+    /*
+     Summary : 
+        This MonoBehaviour defins how the column moves. 
+        It uses Unity's NavMeshAgent for pathfinding. 
+            Warning : The NavMeshAgent's speed need to be setup to 0. This script will be moving the agent in order to match the agent's speed to the real column's speed. 
+        There is a NavMeshObstacle setup in the player's area (The pathfindign system will take that into consideration and automatically avoid that area)       
+     */
+
     [Header("Behaviour properties")]
     public float closestDistanceToSnap; 
 
@@ -27,6 +36,7 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     #region Unity's Methods
     private IEnumerator Start()
     {
+        // Fetch all the references needed. 
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found.");
 
@@ -35,6 +45,8 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
         if (navMeshAgent == null) Debug.LogError("No NavMeshAgent assigned.");
 
+        // Change column mode to VP. 
+        // THIS DOESN'T WORK YET (Default apparently is setup to PP based on the OnStart of the SecurityManager) 
         while (securityManager.IsPPEnabled)
         {
             securityManager.ChangePPControl(false);
@@ -60,6 +72,11 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
     private void Update()
     {
+        /*
+        How it works : 
+        - each frame, calculate a new target based on the weights of the VOIs. (check VOIBehaviour.cs for more details) 
+        - Move the column towards the new target. 
+         */
         if (!navMeshAgent.isActiveAndEnabled) return; 
 
         CalculateNewTarget();
@@ -69,6 +86,7 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        // Draw the path followed by the NavMeshAgent to reach the currentTarget. 
         Gizmos.color = Color.yellow;
         foreach(var point in navMeshAgent.path.corners)
             Gizmos.DrawSphere(point, 0.1f);
@@ -83,16 +101,12 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     
     private void CalculateNewTarget()
     {
-
-        // How it's working : 
-        // if the player is close to a certain VOI, the column will select it
-        // Else calculate the weighted mean of the positions. 
-
-        // Ideas to explore : 
-        // Add a minimum threshold for the rotation if plaer is not close to a certain VOI. 
-        // If the greatest weight is > then the second greatest weight + threshold : snap. 
-        // If the greatest weight > threshold : snap
-
+        /*
+        To calculate a new target : 
+        - We calcualte the distance to the closest VOI. 
+        - if this distance < to a threshold than define the VOI position as the target. 
+        - Else we calculate a meanPosition of the active VOIs using the CalculateMeanVOIsPos(). 
+         */
         VOIBehaviour closestVOI = sceneManager.GetClosestVOIToPlayer();
         Vector3 playerPosProjection = new Vector3(sceneManager.player.position.x, 0, sceneManager.player.position.z);
         Vector3 closestVOIPosProjection = new Vector3(closestVOI.transform.position.x, 0, closestVOI.transform.position.z);
@@ -109,6 +123,8 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
     private Vector3 CaculateMeanVOIsPos()
     {
+        // This calculate a weighted position based on the VOIs position and the VOIs weights. 
+
         float weightMax = float.NegativeInfinity;
         Vector3 weightMaxPos = Vector3.zero;
         float weightSum = 0;
@@ -136,19 +152,17 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     #region Move column to target
     private void MoveColumnToTarget()
     {
-
-
+        /*
+        How it works : 
+        - Update the destination of the NavMeshAgent. 
+        - Adjust the position of the transform to match the column's position. 
+        - Get the second corner of the path found by the NavMeshAgent. 
+        - Calculate a speed vector based on the remaining distance. 
+        - Setup the VP values based on the speed vector
+         */ 
         navMeshAgent.SetDestination(targetPosition);
 
         transform.position = new Vector3(sceneManager.column.position.x, 0, sceneManager.column.position.z);
-
-        //if (!securityManager.acX._VPEnabled || !securityManager.acY._VPEnabled || securityManager.IsPPEnabled)
-        //{
-        //    securityManager.ChangePPControl(false);
-        //    securityManager.ChangeTrackingStatus(false);
-        //    securityManager.acX.VPEnable(true);
-        //    securityManager.acY.VPEnable(true);
-        //}
 
         Vector3 waypoint = navMeshAgent.path.corners[1];
 
@@ -165,6 +179,8 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     
     private void OnTargetUpdate()
     {
+        // Implementing events
+
         bool lastOnTarget = onTarget; 
 
         if (securityManager.acX._VPSliderValue == 0 && securityManager.acY._VPSliderValue == 0)
