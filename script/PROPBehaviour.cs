@@ -65,12 +65,13 @@ public class PROPBehaviour : MonoBehaviour
 
     public void OnGrab()
     {
-        
+        transform.SetParent(sceneManager.leftHand);    
         onGrabEvents.Invoke();
     }
 
     public void OnRelease()
     {
+        transform.SetParent(sceneManager.PROPsParent.transform);
         AdjustVOIs(); 
         onReleaseEvents.Invoke();
     }

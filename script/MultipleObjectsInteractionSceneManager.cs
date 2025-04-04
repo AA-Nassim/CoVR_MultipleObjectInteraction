@@ -14,6 +14,7 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     public VOIBehaviour[] VOIs; //For now I dragged and drop them but we can use GameObject.findgameobjectswithttag. 
 
     [Header("PROPs")]
+    public Transform PROPsParent; 
     public PROPBehaviour[] PROPs;
 
     public Dictionary<VOIType, PROPBehaviour> typeToPROP = new Dictionary<VOIType, PROPBehaviour>(); // To easly access the PROP of a certain type of VOIs. 

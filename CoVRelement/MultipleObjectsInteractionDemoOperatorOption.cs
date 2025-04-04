@@ -18,6 +18,7 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         if (GUILayout.Button("Position PROP to Closest VOI")) ColumnPositionToColosestVOI();
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Release PROP type A")) ReleasePROP(VOIType.TypeA);
+        if (GUILayout.Button("Grab PROP type A")) GrabProp(VOIType.TypeA);
         GUILayout.EndHorizontal(); 
     }
 
@@ -36,6 +37,11 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         // Update the target of the navmesh agent. 
         sceneManager.columnBehaviour.targetPosition = closestVOI.transform.position;
         sceneManager.columnBehaviour.navMeshAgent.SetDestination(sceneManager.columnBehaviour.targetPosition);
+    }
+
+    private void GrabProp(VOIType type)
+    {
+        sceneManager.typeToPROP[type].OnGrab(); 
     }
 
     private void ReleasePROP(VOIType type)
