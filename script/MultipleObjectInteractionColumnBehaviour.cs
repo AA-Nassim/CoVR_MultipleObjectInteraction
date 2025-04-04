@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI; 
+using UnityEngine.AI;
+using UnityEngine.Events; 
 
 public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 {
@@ -12,13 +13,19 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     public Vector3 targetPosition;
     public NavMeshAgent navMeshAgent;
 
+    [Header("Events")]
+    public bool onTarget; 
+    public UnityEvent OnTargetReach;
+    public UnityEvent OnTargetStay;
+    public UnityEvent OnTargetLeave; 
+
     private MultipleObjectsInteractionSceneManager sceneManager;
     private SecurityManager securityManager;
 
-    private bool isUsingPP; //if false means we're using VP. 
+    
 
     #region Unity's Methods
-    private void Start()
+    private IEnumerator Start()
     {
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found.");
@@ -27,6 +34,28 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
         if (securityManager == null) Debug.LogError("No SecurityManager found."); 
 
         if (navMeshAgent == null) Debug.LogError("No NavMeshAgent assigned.");
+
+        while (securityManager.IsPPEnabled)
+        {
+            securityManager.ChangePPControl(false);
+            yield return new WaitForSeconds(.25f);
+            securityManager.ChangeTrackingStatus(false);
+            yield return new WaitForSeconds(.25f);
+
+        }
+
+        while (!securityManager.acX._VPEnabled)
+        {
+            securityManager.acX.VPEnable(true);
+            yield return new WaitForSeconds(.25f);
+        }
+
+        while (!securityManager.acY._VPEnabled)
+        {
+            securityManager.acY.VPEnable(true);
+            yield return new WaitForSeconds(.25f);
+        }
+
     }
 
     private void Update()
@@ -35,6 +64,7 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
         CalculateNewTarget();
         MoveColumnToTarget();
+        
     }
 
     private void OnDrawGizmos()
@@ -104,57 +134,59 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     #endregion
 
     #region Move column to target
-
     private void MoveColumnToTarget()
     {
+
+
         navMeshAgent.SetDestination(targetPosition);
 
         transform.position = new Vector3(sceneManager.column.position.x, 0, sceneManager.column.position.z);
 
-        
+        //if (!securityManager.acX._VPEnabled || !securityManager.acY._VPEnabled || securityManager.IsPPEnabled)
+        //{
+        //    securityManager.ChangePPControl(false);
+        //    securityManager.ChangeTrackingStatus(false);
+        //    securityManager.acX.VPEnable(true);
+        //    securityManager.acY.VPEnable(true);
+        //}
+
+        Vector3 waypoint = navMeshAgent.path.corners[1];
+
+        if (waypoint != targetPosition) targetPosition = waypoint;
+        Vector3 actualPos = sceneManager.column.position;
+        actualPos.y = waypoint.y;
+        Vector3 speedVector = (waypoint - actualPos).normalized * (navMeshAgent.remainingDistance == float.PositiveInfinity ? 1 : navMeshAgent.remainingDistance);
+
+        securityManager.acX._VPSliderValue = Mathf.Abs(speedVector.z) < 0.001 ? 0 : speedVector.z;
+        securityManager.acY._VPSliderValue = Mathf.Abs(speedVector.x) < 0.001 ? 0 : speedVector.x;
 
 
-        if (navMeshAgent.path.corners.Length == 2)
+    }
+    
+    private void OnTargetUpdate()
+    {
+        bool lastOnTarget = onTarget; 
+
+        if (securityManager.acX._VPSliderValue == 0 && securityManager.acY._VPSliderValue == 0)
         {
+            onTarget = true; 
+        }
 
-            if (!securityManager.IsTracking && !securityManager.IsPPEnabled)
-            {
-                Debug.Log("switch to PP called with length = " + navMeshAgent.path.corners.Length);
-                securityManager.acX.VPEnable(false);
-                securityManager.acY.VPEnable(false);
-                securityManager.ChangePPControl(true);
-                securityManager.ChangeTrackingStatus(true);
-            }
-
-            if (targetPosition != navMeshAgent.destination)
-            {
-                targetPosition = navMeshAgent.destination;
-                securityManager.ChangeDefaultTrackedObjectPos(targetPosition);
-            }
+        if (!lastOnTarget & onTarget)
+        {
+            OnTargetReach.Invoke();
             return; 
         }
 
-        if (navMeshAgent.path.corners.Length > 2)
+        if (lastOnTarget && onTarget)
         {
-            if (!securityManager.acX._VPEnabled || !securityManager.acY._VPEnabled || securityManager.IsPPEnabled)
-            {
-                Debug.Log("switch to VP called with length = " + navMeshAgent.path.corners.Length);
-                securityManager.ChangePPControl(false);
-                securityManager.ChangeTrackingStatus(false);
-                securityManager.acX.VPEnable(true);
-                securityManager.acY.VPEnable(true);
-            }
+            OnTargetStay.Invoke();
+            return; 
+        }
 
-            Vector3 waypoint = navMeshAgent.path.corners[1];
-
-            if (waypoint != targetPosition) targetPosition = waypoint;
-            Vector3 actualPos = sceneManager.column.position;
-            actualPos.y = waypoint.y;
-            Vector3 speedVector = (waypoint - actualPos).normalized * (navMeshAgent.remainingDistance == float.PositiveInfinity ? 1 : navMeshAgent.remainingDistance);
-
-            securityManager.acX._VPSliderValue = Mathf.Abs(speedVector.z) < 0.001 ? 0 : speedVector.z;
-            securityManager.acY._VPSliderValue = Mathf.Abs(speedVector.x) < 0.001 ? 0 : speedVector.x;
-
+        if (lastOnTarget && !onTarget)
+        {
+            OnTargetLeave.Invoke();
             return; 
         }
     }
