@@ -14,17 +14,20 @@ public class PROPBehaviour : MonoBehaviour
     public bool isGrabbedWithRightHand;
     public float grabMaxDistance;
 
-    public UnityEvent onGrab;
-    public UnityEvent onRelease;
+    public UnityEvent onGrabEvents;
+    public UnityEvent onReleaseEvents;
 
     public VOIBehaviour grabbedVOI;
 
     private MultipleObjectsInteractionSceneManager sceneManager;
+    public Vector3 previousPositionOnColumn; 
 
     private void Start()
     {
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found. ");
+
+        previousPositionOnColumn = transform.localPosition;
     }
 
     private void Update()
@@ -60,21 +63,30 @@ public class PROPBehaviour : MonoBehaviour
         else if (lastIsGrabbed & !isGrabbed) OnRelease();
     }
 
-    private void OnGrab()
+    public void OnGrab()
     {
-        onGrab.Invoke();
+        
+        onGrabEvents.Invoke();
     }
 
-    private void OnRelease()
+    public void OnRelease()
     {
-        AdjustVOIsPositions(); 
-        onRelease.Invoke();
+        AdjustVOIs(); 
+        onReleaseEvents.Invoke();
     }
 
-    private void AdjustVOIsPositions()
+    private void AdjustVOIs()
     {
-        // Since the vois of the same type have the same parents, we can just offset the parent by the same offset between the PROP and the center of the column
-        Vector3 offset = transform.position - sceneManager.column.position;
-        sceneManager.typeToParent[VOIType].position += offset; 
+        Vector3 posOffset = transform.localPosition - previousPositionOnColumn;
+        Quaternion rotOffset = transform.rotation;
+        previousPositionOnColumn = transform.localPosition;
+
+        foreach (var voi in sceneManager.typeToVOIs[VOIType])
+        {
+            voi.transform.localPosition += posOffset;
+            voi.transform.rotation = rotOffset;
+        }
+
+        
     }
 }

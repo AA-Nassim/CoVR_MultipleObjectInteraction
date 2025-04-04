@@ -17,8 +17,7 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         if (GUILayout.Button("Print VOIs Weights")) PrintVOIsWeights();
         if (GUILayout.Button("Position PROP to Closest VOI")) ColumnPositionToColosestVOI();
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Grab PROP type A")) GrabPROP(VOIType.TypeA);
-        if (GUILayout.Button("Grab PROP type B")) GrabPROP(VOIType.TypeB);
+        if (GUILayout.Button("Release PROP type A")) ReleasePROP(VOIType.TypeA);
         GUILayout.EndHorizontal(); 
     }
 
@@ -39,9 +38,9 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         sceneManager.columnBehaviour.navMeshAgent.SetDestination(sceneManager.columnBehaviour.targetPosition);
     }
 
-    private void GrabPROP(VOIType type)
+    private void ReleasePROP(VOIType type)
     {
-     
+        sceneManager.typeToPROP[type].OnRelease(); 
     }
 
 }
