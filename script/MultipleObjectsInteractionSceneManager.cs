@@ -7,6 +7,9 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
     public static MultipleObjectsInteractionSceneManager Instance;
 
+    [Header("General")]
+    public bool isReady = false; 
+
     [Header("VOIs")]
     public VOIBehaviour[] VOIs; //For now I dragged and drop them but we can use GameObject.findgameobjectswithttag. 
     [Header("PROPs")]
@@ -47,7 +50,9 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         rightHand = GameObject.FindGameObjectWithTag("RightHand").transform;
         column = GameObject.FindGameObjectWithTag("TangibleDoor").transform;
 
-        DictInit(); 
+        DictInit();
+
+        isReady = true; 
     }
 
     private void Update()
@@ -56,7 +61,6 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         if (leftHand == null) leftHand = GameObject.FindGameObjectWithTag("LeftHand").transform;
         if (rightHand == null) rightHand = GameObject.FindGameObjectWithTag("RightHand").transform;
         if (column == null) column = GameObject.FindGameObjectWithTag("TangibleDoor").transform;
-        Debug.Log(column.gameObject.name);
     }
 
     #endregion

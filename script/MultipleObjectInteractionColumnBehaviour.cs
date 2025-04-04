@@ -13,7 +13,9 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     public NavMeshAgent navMeshAgent;
 
     private MultipleObjectsInteractionSceneManager sceneManager;
-    private SecurityManager securityManager; 
+    private SecurityManager securityManager;
+
+    private bool isUsingPP; //if false means we're using VP. 
 
     #region Unity's Methods
     private void Start()
@@ -25,8 +27,6 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
         if (securityManager == null) Debug.LogError("No SecurityManager found."); 
 
         if (navMeshAgent == null) Debug.LogError("No NavMeshAgent assigned.");
-
-        
     }
 
     private void Update()
@@ -111,10 +111,15 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
         transform.position = new Vector3(sceneManager.column.position.x, 0, sceneManager.column.position.z);
 
+        
+
+
         if (navMeshAgent.path.corners.Length == 2)
         {
+
             if (!securityManager.IsTracking && !securityManager.IsPPEnabled)
             {
+                Debug.Log("switch to PP called with length = " + navMeshAgent.path.corners.Length);
                 securityManager.acX.VPEnable(false);
                 securityManager.acY.VPEnable(false);
                 securityManager.ChangePPControl(true);
@@ -133,6 +138,7 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
         {
             if (!securityManager.acX._VPEnabled || !securityManager.acY._VPEnabled || securityManager.IsPPEnabled)
             {
+                Debug.Log("switch to VP called with length = " + navMeshAgent.path.corners.Length);
                 securityManager.ChangePPControl(false);
                 securityManager.ChangeTrackingStatus(false);
                 securityManager.acX.VPEnable(true);
@@ -152,9 +158,6 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
             return; 
         }
     }
-
-
-
     #endregion
 
 
