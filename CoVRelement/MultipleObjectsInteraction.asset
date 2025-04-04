@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e6d453cfd32b3748baca8f6738be7c9, type: 3}
+  m_Name: MultipleObjectsInteraction
+  m_EditorClassIdentifier: 
+  sceneName: MultipleObjectsInteraction
+  playerStartPos: {x: 0, y: 0, z: 0}
+  playerStartOrientation: 0
+  TangibleSurfaceStartPos: {x: 0, y: 0, z: 0}
+  TangibleSurfaceStartSpeedX: 0.2
+  TangibleSurfaceStartSpeedY: 0.7
+  trackStatus: 0
+  ppStatus: 0
+  radiusSecureView: 0.1
+  T: {fileID: 0}
+  CameraRig: {fileID: 0}
+  visiblityDistance: 1
+  sceneDescription: "Demo:\t MultipleObjectsInteraction:\n\tthis demo demonstrate
+    the use of COVR systeme to interact with N virtual objects using K real objects.
+    \nSetUp:\n\t-Keep the emergency stop button close\n\t-Verify this CoVR space
+    if free from obstacle\n\t-Ensure the user in not in the colum trajectery in all
+    time\n\t-Make Sure to Contact Philippe GAUTHIER from ISIR Technique Service before
+    usuing the system"
+  playerInstructionBeforeStart: 'Simulation is not ready
+
+    Wait for the operator
+    to finish preparing the simulation'
+  controlleurVisible: 0
