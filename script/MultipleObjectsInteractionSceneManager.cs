@@ -12,9 +12,11 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
     [Header("VOIs")]
     public VOIBehaviour[] VOIs; //For now I dragged and drop them but we can use GameObject.findgameobjectswithttag. 
+
     [Header("PROPs")]
     public PROPBehaviour[] PROPs;
 
+    public Dictionary<VOIType, Transform> typeToParent = new Dictionary<VOIType, Transform>();
     public Dictionary<VOIType, PROPBehaviour> typeToPROP = new Dictionary<VOIType, PROPBehaviour>(); // To easly access the PROP of a certain type of VOIs. 
     public Dictionary<VOIType, List<VOIBehaviour>> typeToVOIs = new Dictionary<VOIType, List<VOIBehaviour>>(); //Future TODO : For changing all the VOIs of a certain type based on the PROP orientation. 
 
@@ -52,7 +54,9 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
         DictInit();
 
-        isReady = true; 
+        isReady = true;
+
+        
     }
 
     private void Update()
@@ -100,7 +104,14 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
             if (typeToPROP.ContainsKey(prop.VOIType)) Debug.LogError("Warning : Multiple props uses with the same VOI Type.");
             typeToPROP.Add(prop.VOIType, prop);
         }
+
+        foreach (var voi in VOIs)
+        {
+            if (typeToParent.ContainsKey(voi.VOIType)) continue;
+            typeToParent.Add(voi.VOIType, voi.transform.parent);
+        }
     }
+
 
     #endregion
 

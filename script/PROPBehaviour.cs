@@ -67,6 +67,14 @@ public class PROPBehaviour : MonoBehaviour
 
     private void OnRelease()
     {
+        AdjustVOIsPositions(); 
         onRelease.Invoke();
+    }
+
+    private void AdjustVOIsPositions()
+    {
+        // Since the vois of the same type have the same parents, we can just offset the parent by the same offset between the PROP and the center of the column
+        Vector3 offset = transform.position - sceneManager.column.position;
+        sceneManager.typeToParent[VOIType].position += offset; 
     }
 }

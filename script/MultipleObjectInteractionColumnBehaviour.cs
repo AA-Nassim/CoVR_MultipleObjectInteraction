@@ -173,8 +173,6 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
         securityManager.acX._VPSliderValue = Mathf.Abs(speedVector.z) < 0.001 ? 0 : speedVector.z;
         securityManager.acY._VPSliderValue = Mathf.Abs(speedVector.x) < 0.001 ? 0 : speedVector.x;
-
-
     }
     
     private void OnTargetUpdate()

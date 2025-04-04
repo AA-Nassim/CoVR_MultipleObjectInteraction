@@ -20,7 +20,7 @@ public class VOIBehaviour : MonoBehaviour
     private float rayCount = 10;
 
     private Camera mainCamera;
-    private Collider collider;
+    private Collider collider; 
 
     #region Unity's Methods
     private void Start()
@@ -30,6 +30,8 @@ public class VOIBehaviour : MonoBehaviour
 
         collider = transform.GetComponent<Collider>();
         if (collider == null) Debug.LogError("No Collider");
+
+
     }
 
     private void Update()
