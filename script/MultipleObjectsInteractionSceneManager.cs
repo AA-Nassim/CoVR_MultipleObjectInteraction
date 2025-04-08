@@ -12,9 +12,10 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
     [Header("VOIs")]
     public VOIBehaviour[] VOIs; //For now I dragged and drop them but we can use GameObject.findgameobjectswithttag. 
+    public VOIBehaviour simulatedVOI; 
 
     [Header("PROPs")]
-    public Transform PROPsParent; 
+    public Transform PROPsParent;
     public PROPBehaviour[] PROPs;
 
     public Dictionary<VOIType, PROPBehaviour> typeToPROP = new Dictionary<VOIType, PROPBehaviour>(); // To easly access the PROP of a certain type of VOIs. 
@@ -28,6 +29,9 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     public Transform player; 
     public Transform leftHand;
     public Transform rightHand;
+
+    [Header("Scenario systemique")]
+    public bool useScenarioSystemic; 
 
 
     #region Unity's Methods
@@ -47,16 +51,29 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
     public void Start()
     {
+        // Get references
         player = GameObject.FindGameObjectWithTag("Player").transform;
         leftHand = GameObject.FindGameObjectWithTag("LeftHand").transform;
         rightHand = GameObject.FindGameObjectWithTag("RightHand").transform;
         column = GameObject.FindGameObjectWithTag("TangibleDoor").transform;
+        
+        // Get VOIs
+        GameObject[] VOIsGameObjects = GameObject.FindGameObjectsWithTag("voi");
+        VOIs = new VOIBehaviour[VOIsGameObjects.Length];
+        for (int i = 0; i < VOIs.Length; i++)
+            VOIs[i] = VOIsGameObjects[i].GetComponent<VOIBehaviour>(); 
+        
 
+        // Get PROPs
+        GameObject[] PROPsGameObjects = GameObject.FindGameObjectsWithTag("prop");
+        PROPs = new PROPBehaviour[PROPsGameObjects.Length];
+        for (int i = 0; i < PROPs.Length; i++)
+            PROPs[i] = PROPsGameObjects[i].GetComponent<PROPBehaviour>(); 
+
+        // Init dict
         DictInit();
 
         isReady = true;
-
-        
     }
 
     private void Update()
@@ -95,6 +112,51 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
     #endregion
 
+    #region Scenario Systemique Functions
+
+    public void RandomGrabVOI(VOIType type)
+    {
+        VOIBehaviour randomVOI = GetRandomVOI(type);
+        GrabVOI(randomVOI);
+    }
+
+    public void RandomReleaseVOI()
+    {
+        VOIBehaviour randomVOISurface = GetRandomVOI(VOIType.Surfaces);
+        ReleaseVOI(randomVOISurface); 
+    }
+
+    ///<summary>
+    /// Returns a random VOI of a certain type. 
+    ///</summary>
+    public VOIBehaviour GetRandomVOI(VOIType type)
+    {
+        int length = typeToVOIs[type].Capacity;
+        int randomID = Random.Range(0, length);
+        return typeToVOIs[type][randomID];
+    }
+
+    ///<summary>
+    /// Moves the column so that the user can grab the chosen VOI. 
+    ///</summary>
+    public void GrabVOI(VOIBehaviour voiToGrab)
+    {
+        
+    }
+
+
+    ///<summary>
+    /// Moves the column to the surface where the user should put the grabbed VOI. 
+    ///</summary>
+    public void ReleaseVOI(VOIBehaviour voiSurfaceToReleaseOn)
+    {
+        
+    }
+
+
+
+    #endregion
+
     #region Private Methods
 
     private void DictInit()
@@ -115,6 +177,9 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
             }
         }
     }
+
     #endregion
 
+
+    
 }

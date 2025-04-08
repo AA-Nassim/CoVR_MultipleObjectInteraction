@@ -17,10 +17,13 @@ public class PROPBehaviour : MonoBehaviour
     public UnityEvent onGrabEvents;
     public UnityEvent onReleaseEvents;
 
-    public VOIBehaviour grabbedVOI;
+    [Header("Debug")]
+    public MeshRenderer mesh; 
+    public Material grabbedMaterial; 
+    public Material notGrabbedMaterial; 
 
     private MultipleObjectsInteractionSceneManager sceneManager;
-    public Vector3 previousPositionOnColumn; 
+    [HideInInspector] public Vector3 previousPositionOnColumn; 
 
     private void Start()
     {
@@ -30,7 +33,7 @@ public class PROPBehaviour : MonoBehaviour
         previousPositionOnColumn = transform.localPosition;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         UpdateGrab();
     }
@@ -65,13 +68,17 @@ public class PROPBehaviour : MonoBehaviour
 
     public void OnGrab()
     {
+        mesh.material = grabbedMaterial; 
         transform.SetParent(sceneManager.leftHand);    
+
         onGrabEvents.Invoke();
     }
 
     public void OnRelease()
     {
+        mesh.material = notGrabbedMaterial;
         transform.SetParent(sceneManager.PROPsParent.transform);
+
         AdjustVOIs(); 
         onReleaseEvents.Invoke();
     }
@@ -87,7 +94,5 @@ public class PROPBehaviour : MonoBehaviour
             voi.transform.localPosition += posOffset;
             voi.transform.rotation = rotOffset;
         }
-
-        
     }
 }

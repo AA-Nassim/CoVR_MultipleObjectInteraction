@@ -20,7 +20,8 @@ public class VOIBehaviour : MonoBehaviour
     private float rayCount = 10;
 
     private Camera mainCamera;
-    private Collider collider; 
+    private Collider collider;
+    private MultipleObjectsInteractionSceneManager sceneManager; 
 
     #region Unity's Methods
     private void Start()
@@ -31,7 +32,8 @@ public class VOIBehaviour : MonoBehaviour
         collider = transform.GetComponent<Collider>();
         if (collider == null) Debug.LogError("No Collider");
 
-
+        sceneManager = MultipleObjectsInteractionSceneManager.Instance;
+        if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found.");
     }
 
     private void Update()
@@ -39,8 +41,13 @@ public class VOIBehaviour : MonoBehaviour
         if (!isActive) return;
         if (mainCamera == null) mainCamera = Camera.main;
 
-        UpdateWeight();
+        if (sceneManager.useScenarioSystemic)
+        {
+            // No need to calculate the weight thingy if we're using the systemic scenario. 
+            return; 
+        }
 
+        UpdateWeight();
         //upgrade : UpdateGrab only if player close to the VOI. 
         // TODO : 
         // If (a voi of the same type is grabbed) return 
