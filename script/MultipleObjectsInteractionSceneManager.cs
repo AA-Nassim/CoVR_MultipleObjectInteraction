@@ -47,32 +47,32 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-    }
 
-    public void Start()
-    {
         // Get references
         player = GameObject.FindGameObjectWithTag("Player").transform;
         leftHand = GameObject.FindGameObjectWithTag("LeftHand").transform;
         rightHand = GameObject.FindGameObjectWithTag("RightHand").transform;
         column = GameObject.FindGameObjectWithTag("TangibleDoor").transform;
-        
+
         // Get VOIs
         GameObject[] VOIsGameObjects = GameObject.FindGameObjectsWithTag("voi");
         VOIs = new VOIBehaviour[VOIsGameObjects.Length];
         for (int i = 0; i < VOIs.Length; i++)
-            VOIs[i] = VOIsGameObjects[i].GetComponent<VOIBehaviour>(); 
-        
+            VOIs[i] = VOIsGameObjects[i].GetComponent<VOIBehaviour>();
+
 
         // Get PROPs
         GameObject[] PROPsGameObjects = GameObject.FindGameObjectsWithTag("prop");
         PROPs = new PROPBehaviour[PROPsGameObjects.Length];
         for (int i = 0; i < PROPs.Length; i++)
-            PROPs[i] = PROPsGameObjects[i].GetComponent<PROPBehaviour>(); 
+            PROPs[i] = PROPsGameObjects[i].GetComponent<PROPBehaviour>();
 
         // Init dict
         DictInit();
+    }
 
+    public void Start()
+    {
         isReady = true;
     }
 
@@ -95,7 +95,7 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         for (int i = 0; i < VOIs.Length; i++)
         {
             if (!VOIs[i].isActive) continue;
-            if (VOIs[i].VOIType == VOIType.Surfaces) continue;
+            if (VOIs[i].voiType == VOIType.Surfaces) continue;
 
             if (VOIs[i].positionWeight > minDistanceWeight)
             {
@@ -114,16 +114,13 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
     #region Scenario Systemique Functions
 
-    public void RandomGrabVOI(VOIType type)
+    public void SelectRandomVOI(VOIType type)
     {
         VOIBehaviour randomVOI = GetRandomVOI(type);
-        GrabVOI(randomVOI);
-    }
-
-    public void RandomReleaseVOI()
-    {
-        VOIBehaviour randomVOISurface = GetRandomVOI(VOIType.Surfaces);
-        ReleaseVOI(randomVOISurface); 
+        if (simulatedVOI != null) UnhighlightVOI(simulatedVOI);
+        simulatedVOI = randomVOI;
+        HighlightVOI(simulatedVOI);
+        PositionColumnToVOI(randomVOI);
     }
 
     ///<summary>
@@ -131,29 +128,41 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     ///</summary>
     public VOIBehaviour GetRandomVOI(VOIType type)
     {
-        int length = typeToVOIs[type].Capacity;
+        int length = typeToVOIs[type].Count;
         int randomID = Random.Range(0, length);
         return typeToVOIs[type][randomID];
     }
 
     ///<summary>
-    /// Moves the column so that the user can grab the chosen VOI. 
+    /// Add and setup of the "Outline" Component to highlight a VOI. The outline is then delted when the user picks the VOI.  
     ///</summary>
-    public void GrabVOI(VOIBehaviour voiToGrab)
+    public void HighlightVOI(VOIBehaviour voiToHighlight)
     {
-        
+        if (voiToHighlight == null) return;
+        Outline outlineComponent = voiToHighlight.gameObject.AddComponent<Outline>();
+        outlineComponent.OutlineMode = Outline.Mode.OutlineAll;
+        outlineComponent.OutlineColor = Color.red; 
     }
-
 
     ///<summary>
-    /// Moves the column to the surface where the user should put the grabbed VOI. 
+    /// Destroys the "Outline" component if it exists.   
     ///</summary>
-    public void ReleaseVOI(VOIBehaviour voiSurfaceToReleaseOn)
+    public void UnhighlightVOI(VOIBehaviour voiToUnhighlight)
     {
-        
+        if (voiToUnhighlight == null) return; 
+        Outline outlineComponent = voiToUnhighlight.GetComponent<Outline>(); 
+
+        if (outlineComponent != null)
+            Destroy(outlineComponent);
     }
 
-
+    ///<summary>
+    /// Moves the column so that the user can grab the chosen VOI. 
+    ///</summary>
+    public void PositionColumnToVOI(VOIBehaviour voi)
+    {
+        columnBehaviour.SetNewTargert(voi.transform.position);
+    }
 
     #endregion
 
@@ -169,11 +178,11 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 
         foreach (var voi in VOIs)
         {
-            if (typeToVOIs.ContainsKey(voi.VOIType)) typeToVOIs[voi.VOIType].Add(voi); 
+            if (typeToVOIs.ContainsKey(voi.voiType)) typeToVOIs[voi.voiType].Add(voi); 
             else
             {
-                typeToVOIs[voi.VOIType] = new List<VOIBehaviour>();
-                typeToVOIs[voi.VOIType].Add(voi); 
+                typeToVOIs[voi.voiType] = new List<VOIBehaviour>();
+                typeToVOIs[voi.voiType].Add(voi); 
             }
         }
     }

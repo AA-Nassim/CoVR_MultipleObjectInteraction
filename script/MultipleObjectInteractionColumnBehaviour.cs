@@ -47,8 +47,12 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
         if (navMeshAgent == null) Debug.LogError("No NavMeshAgent assigned.");
 
+        // Set position to match the realColumnPosition :
+        //THis doesn't really work becaus 
+        transform.position = new Vector3(sceneManager.column.position.x, 0, sceneManager.column.position.z);
+
         // TODO: Change column mode to VP.
-           
+
 
     }
 
@@ -64,14 +68,17 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
         {
             // targe is only setup based on the scenario. 
             if (sceneManager.simulatedVOI == null) return; 
-            MoveColumnToTarget(); 
+
+
+            MoveColumnToTarget();
+            OnTargetUpdate();
             return; 
         }
 
         if (!navMeshAgent.isActiveAndEnabled) return; 
         CalculateNewTarget();
         MoveColumnToTarget();
-        
+        OnTargetUpdate(); 
     }
 
     private void OnDrawGizmos()
@@ -110,7 +117,8 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
         }   
         
         Vector3 meanVOIPos = CaculateMeanVOIsPos();
-        targetPosition = meanVOIPos; 
+        targetPosition = meanVOIPos;
+        navMeshAgent.SetDestination(targetPosition);
     }
 
     private Vector3 CaculateMeanVOIsPos()
@@ -139,6 +147,13 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
         return voiWeightedPos;
     }
 
+    public void SetNewTargert(Vector3 newTarget)
+    {
+        targetPosition = newTarget;
+        navMeshAgent.SetDestination(targetPosition);
+        onTarget = false; 
+    }
+
     #endregion
 
     #region Move column to target
@@ -153,8 +168,8 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
     /// </summary>
     private void MoveColumnToTarget()
     {
-
-        navMeshAgent.SetDestination(targetPosition);
+        if (onTarget)
+            return; 
 
         transform.position = new Vector3(sceneManager.column.position.x, 0, sceneManager.column.position.z);
 
@@ -198,6 +213,7 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
             return; 
         }
     }
+    
     #endregion
 
 

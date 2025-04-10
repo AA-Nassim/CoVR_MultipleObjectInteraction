@@ -7,8 +7,10 @@ using UnityEngine;
 public class VOIBehaviour : MonoBehaviour
 {
     [Header("VOI Properties")]
-    public VOIType VOIType;
+    public VOIType voiType;
     public bool isActive;
+    public bool isInsideColumn; 
+    public Vector3 initialPosition; 
 
     [Header("Weight properties")]
     public float weight;
@@ -34,6 +36,8 @@ public class VOIBehaviour : MonoBehaviour
 
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found.");
+
+        initialPosition = transform.position; 
     }
 
     private void Update()
@@ -44,6 +48,12 @@ public class VOIBehaviour : MonoBehaviour
         if (sceneManager.useScenarioSystemic)
         {
             // No need to calculate the weight thingy if we're using the systemic scenario. 
+            if (!isInsideColumn) return;
+
+            if (!sceneManager.columnBehaviour.onTarget) return;
+
+            print("SIMULATE : " + name);
+
             return; 
         }
 
@@ -54,6 +64,23 @@ public class VOIBehaviour : MonoBehaviour
         // Else (meaning no object of the same time is grabbed) adjust VOI position and rotation to match the PROP position. 
 
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (voiType.Equals(VOIType.Surfaces)) return;
+        isInsideColumn = true; 
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (voiType.Equals(VOIType.Surfaces)) return;
+        isInsideColumn = false; 
+    }
+
+    #endregion
+
+    #region OptiTrack version without needing props
+
 
     #endregion
 
@@ -153,12 +180,6 @@ public class VOIBehaviour : MonoBehaviour
         //Debug.Log("cos: " + 0);
         return 90;
     }
-
-    #endregion
-
-    #region VOI Adjustments 
-
-
 
     #endregion
 }

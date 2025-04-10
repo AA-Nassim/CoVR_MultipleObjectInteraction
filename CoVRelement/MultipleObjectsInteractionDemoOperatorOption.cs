@@ -16,15 +16,16 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
     {
         GUILayout.Label("Debug"); 
         if (GUILayout.Button("Print VOIs Weights")) PrintVOIsWeights();
+        if (GUILayout.Button("Match column")) MatchColumn();
 
         GUILayout.Label("Systemic demo");
         GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Hint Grab type A")) HighlightRandomVOI(VOIType.TypeA);
-                if (GUILayout.Button("Hint Grab type B")) HighlightRandomVOI(VOIType.TypeB);
+                if (GUILayout.Button("Select VOI type A")) SelectRandomVOI(VOIType.TypeA);
+                if (GUILayout.Button("Select VOI type B")) SelectRandomVOI(VOIType.TypeB);
             GUILayout.EndHorizontal();
 
-                if (GUILayout.Button("Hint Release Surface")) HighlightRandomVOI(VOIType.TypeB);
+                if (GUILayout.Button("Select VOI Surface")) SelectRandomVOI(VOIType.Surfaces);
 
         GUILayout.EndVertical(); 
     }
@@ -37,9 +38,16 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         }
     }
 
-    private void HighlightRandomVOI(VOIType type)
+    private void MatchColumn()
     {
-        sceneManager.RandomGrabVOI(type);
+        sceneManager.columnBehaviour.transform.position = new Vector3(sceneManager.column.position.x, 0, sceneManager.column.position.z);
+
+    }
+
+    private void SelectRandomVOI(VOIType type)
+    {
+        sceneManager.SelectRandomVOI(type);
+        
     }
 
 }

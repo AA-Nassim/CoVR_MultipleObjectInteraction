@@ -6,13 +6,22 @@ using UnityEngine.Events;
 public class PROPBehaviour : MonoBehaviour
 {
     [Header("PROP Properties")]
+    public bool IsActive = false; 
     public VOIType VOIType;
+    public Vector3 initialPosition;
 
     [Header("Grab properties")]
     public bool isGrabbed;
     public bool isGrabbedWithLeftHand;
     public bool isGrabbedWithRightHand;
-    public float grabMaxDistance;
+
+    //Descrimination the Y Position
+    public float heightErrorRange;
+
+    public float grabHoldDuration = 0.5f;
+    public float releaseHoldDuration = 0.5f;
+    private float grabTimer = 0f;
+    private float releaseTimer = 0f;
 
     public UnityEvent onGrabEvents;
     public UnityEvent onReleaseEvents;
@@ -23,75 +32,92 @@ public class PROPBehaviour : MonoBehaviour
     public Material notGrabbedMaterial; 
 
     private MultipleObjectsInteractionSceneManager sceneManager;
-    [HideInInspector] public Vector3 previousPositionOnColumn; 
 
     private void Start()
     {
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found. ");
 
-        previousPositionOnColumn = transform.localPosition;
+        StartCoroutine(SaveInitialPosition());
+    }
+
+    private IEnumerator SaveInitialPosition()
+    {
+        yield return new WaitForSeconds(1);
+        initialPosition = transform.position;
+        IsActive = true; 
+        yield return null; 
     }
 
     private void LateUpdate()
     {
+        if (!IsActive) return; 
         UpdateGrab();
     }
 
     private void UpdateGrab()
     {
-        bool lastIsGrabbed = isGrabbed;
-
-        isGrabbed = false;
-        isGrabbedWithLeftHand = false;
-        isGrabbedWithRightHand = false;
-
-        float distLeftHand = Vector3.Distance(transform.position, sceneManager.leftHand.position);
-        if (distLeftHand < grabMaxDistance)
+        bool isAbovePlatform = transform.position.y > (initialPosition.y + heightErrorRange);
+        
+        if (isAbovePlatform)
         {
-            isGrabbed = true;
-            isGrabbedWithLeftHand = true;
+            if (!isGrabbed)
+            {
+                grabTimer += Time.deltaTime;
+                releaseTimer = 0f;
+
+                if (grabTimer >= grabHoldDuration)
+                {
+                    isGrabbed = true;
+                    OnGrab();
+                }
+            }
+            
         }
         else
         {
-            float distRightHand = Vector3.Distance(transform.position, sceneManager.rightHand.position);
-            if (distRightHand < grabMaxDistance)
+            if (isGrabbed)
             {
-                isGrabbed = true;
-                isGrabbedWithRightHand = true;
-            }
-        }
+                releaseTimer += Time.deltaTime;
+                grabTimer = 0f;
 
-        if (!lastIsGrabbed & isGrabbed) OnGrab();
-        else if (lastIsGrabbed & !isGrabbed) OnRelease();
+                if (releaseTimer >= releaseHoldDuration)
+                {
+                    isGrabbed = false;
+                    OnRelease();
+                }
+            }
+            
+        }
     }
 
     public void OnGrab()
     {
+        print("OnGrab");
         mesh.material = grabbedMaterial; 
-        transform.SetParent(sceneManager.leftHand);    
+        //transform.SetParent(sceneManager.leftHand);    
 
-        onGrabEvents.Invoke();
+        onGrabEvents?.Invoke();
     }
 
     public void OnRelease()
     {
+        print("OnRelease");
         mesh.material = notGrabbedMaterial;
-        transform.SetParent(sceneManager.PROPsParent.transform);
+        //transform.SetParent(sceneManager.PROPsParent.transform);
 
         AdjustVOIs(); 
-        onReleaseEvents.Invoke();
+        onReleaseEvents?.Invoke();
     }
 
     private void AdjustVOIs()
     {
-        Vector3 posOffset = transform.localPosition - previousPositionOnColumn;
+        Vector3 posOffset = new Vector3(transform.position.x - sceneManager.column.position.x, 0, transform.position.z - sceneManager.column.position.z);
         Quaternion rotOffset = transform.rotation;
-        previousPositionOnColumn = transform.localPosition;
 
         foreach (var voi in sceneManager.typeToVOIs[VOIType])
         {
-            voi.transform.localPosition += posOffset;
+            voi.transform.position = posOffset + voi.initialPosition;
             voi.transform.rotation = rotOffset;
         }
     }
