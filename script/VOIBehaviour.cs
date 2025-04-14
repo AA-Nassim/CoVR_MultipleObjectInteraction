@@ -9,7 +9,7 @@ public class VOIBehaviour : MonoBehaviour
     [Header("VOI Properties")]
     public VOIType voiType;
     public bool isActive;
-    public bool isInsideColumn; 
+    public bool isInsideColumn;
     public Vector3 initialPosition; 
 
     [Header("Weight properties")]
@@ -23,7 +23,8 @@ public class VOIBehaviour : MonoBehaviour
 
     private Camera mainCamera;
     private Collider collider;
-    private MultipleObjectsInteractionSceneManager sceneManager; 
+    private MultipleObjectsInteractionSceneManager sceneManager;
+    private Transform initialParent; 
 
     #region Unity's Methods
     private void Start()
@@ -37,51 +38,39 @@ public class VOIBehaviour : MonoBehaviour
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found.");
 
-        initialPosition = transform.position; 
-    }
-
-    private void Update()
-    {
-        if (!isActive) return;
-        if (mainCamera == null) mainCamera = Camera.main;
-
-        if (sceneManager.useScenarioSystemic)
-        {
-            // No need to calculate the weight thingy if we're using the systemic scenario. 
-            if (!isInsideColumn) return;
-
-            if (!sceneManager.columnBehaviour.onTarget) return;
-
-            print("SIMULATE : " + name);
-
-            return; 
-        }
-
-        UpdateWeight();
-        //upgrade : UpdateGrab only if player close to the VOI. 
-        // TODO : 
-        // If (a voi of the same type is grabbed) return 
-        // Else (meaning no object of the same time is grabbed) adjust VOI position and rotation to match the PROP position. 
-
+        initialPosition = transform.position;
+        initialParent = transform.parent;
+        isInsideColumn = false; 
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (voiType.Equals(VOIType.Surfaces)) return;
-        isInsideColumn = true; 
+        isInsideColumn = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (voiType.Equals(VOIType.Surfaces)) return;
-        isInsideColumn = false; 
+        isInsideColumn = false;
     }
 
     #endregion
 
-    #region OptiTrack version without needing props
 
 
+    #region Events
+    public void LinkToPROP(Vector3 localPos)
+    {
+        transform.SetParent(sceneManager.typeToPROP[voiType].transform);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity; 
+    }
+
+    public void UnlinkFromPROP()
+    {
+        transform.SetParent(initialParent);
+    }
     #endregion
 
     #region Weight Calculation functions

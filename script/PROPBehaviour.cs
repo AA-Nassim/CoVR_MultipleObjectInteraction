@@ -7,8 +7,10 @@ public class PROPBehaviour : MonoBehaviour
 {
     [Header("PROP Properties")]
     public bool IsActive = false; 
-    public VOIType VOIType;
+    public VOIType voiType;
     public Vector3 initialPosition;
+    public bool isInsideColumn;
+    public Vector3 meshLocalPos; 
 
     [Header("Grab properties")]
     public bool isGrabbed;
@@ -32,6 +34,7 @@ public class PROPBehaviour : MonoBehaviour
     public Material notGrabbedMaterial; 
 
     private MultipleObjectsInteractionSceneManager sceneManager;
+    private Transform initialParent; 
 
     private void Start()
     {
@@ -39,14 +42,7 @@ public class PROPBehaviour : MonoBehaviour
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found. ");
 
         StartCoroutine(SaveInitialPosition());
-    }
-
-    private IEnumerator SaveInitialPosition()
-    {
-        yield return new WaitForSeconds(1);
-        initialPosition = transform.position;
-        IsActive = true; 
-        yield return null; 
+        initialParent = transform.parent;
     }
 
     private void LateUpdate()
@@ -55,8 +51,23 @@ public class PROPBehaviour : MonoBehaviour
         UpdateGrab();
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (voiType.Equals(VOIType.Surfaces)) return;
+        isInsideColumn = true;
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (voiType.Equals(VOIType.Surfaces)) return;
+        isInsideColumn = false;
+    }
+
     private void UpdateGrab()
     {
+        if (!sceneManager.columnBehaviour.onTarget) return;
+        if (!isInsideColumn) return;
+
         bool isAbovePlatform = transform.position.y > (initialPosition.y + heightErrorRange);
         
         if (isAbovePlatform)
@@ -72,7 +83,7 @@ public class PROPBehaviour : MonoBehaviour
                     OnGrab();
                 }
             }
-            
+
         }
         else
         {
@@ -94,8 +105,11 @@ public class PROPBehaviour : MonoBehaviour
     public void OnGrab()
     {
         print("OnGrab");
-        mesh.material = grabbedMaterial; 
+        mesh.material = grabbedMaterial;
         //transform.SetParent(sceneManager.leftHand);    
+
+        foreach (var voi in sceneManager.typeToVOIs[voiType])
+            if (voi.isInsideColumn) voi.LinkToPROP(meshLocalPos);
 
         onGrabEvents?.Invoke();
     }
@@ -104,9 +118,12 @@ public class PROPBehaviour : MonoBehaviour
     {
         print("OnRelease");
         mesh.material = notGrabbedMaterial;
-        //transform.SetParent(sceneManager.PROPsParent.transform);
+        //transform.SetParent(initialParent
+        //AdjustVOIs(); 
 
-        AdjustVOIs(); 
+        foreach (var voi in sceneManager.typeToVOIs[voiType])
+            if (voi.isInsideColumn) voi.UnlinkFromPROP();
+
         onReleaseEvents?.Invoke();
     }
 
@@ -115,10 +132,18 @@ public class PROPBehaviour : MonoBehaviour
         Vector3 posOffset = new Vector3(transform.position.x - sceneManager.column.position.x, 0, transform.position.z - sceneManager.column.position.z);
         Quaternion rotOffset = transform.rotation;
 
-        foreach (var voi in sceneManager.typeToVOIs[VOIType])
+        foreach (var voi in sceneManager.typeToVOIs[voiType])
         {
             voi.transform.position = posOffset + voi.initialPosition;
             voi.transform.rotation = rotOffset;
         }
+    }
+
+    private IEnumerator SaveInitialPosition()
+    {
+        yield return new WaitForSeconds(1);
+        initialPosition = transform.position;
+        IsActive = true;
+        yield return null;
     }
 }

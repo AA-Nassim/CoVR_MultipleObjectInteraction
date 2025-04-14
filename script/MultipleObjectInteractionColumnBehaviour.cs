@@ -58,27 +58,15 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
     private void Update()
     {
-        /*
-        How it works : 
-        - each frame, calculate a new target based on the weights of the VOIs. (check VOIBehaviour.cs for more details) 
-        - Move the column towards the new target. 
-         */
 
-        if (sceneManager.useScenarioSystemic)
-        {
-            // targe is only setup based on the scenario. 
-            if (sceneManager.simulatedVOI == null) return; 
+        // targe is only setup based on the scenario. 
+        if (sceneManager.simulatedVOI == null) return; 
 
 
-            MoveColumnToTarget();
-            OnTargetUpdate();
-            return; 
-        }
-
-        if (!navMeshAgent.isActiveAndEnabled) return; 
-        CalculateNewTarget();
         MoveColumnToTarget();
-        OnTargetUpdate(); 
+        OnTargetUpdate();
+        return; 
+        
     }
 
     private void OnDrawGizmos()
@@ -197,6 +185,7 @@ public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 
         if (!lastOnTarget & onTarget)
         {
+            sceneManager.simulatedVOI.GetComponent<Outline>().OutlineColor = Color.green; 
             OnTargetReach.Invoke();
             return; 
         }

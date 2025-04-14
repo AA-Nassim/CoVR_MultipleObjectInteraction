@@ -21,12 +21,15 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         GUILayout.Label("Systemic demo");
         GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Select VOI type A")) SelectRandomVOI(VOIType.TypeA);
-                if (GUILayout.Button("Select VOI type B")) SelectRandomVOI(VOIType.TypeB);
+                if (GUILayout.Button("Select surface 1")) SelectVOI(0);
+                if (GUILayout.Button("Select surface 2")) SelectVOI(1);
+                if (GUILayout.Button("Select surface 3")) SelectVOI(2);
             GUILayout.EndHorizontal();
-
-                if (GUILayout.Button("Select VOI Surface")) SelectRandomVOI(VOIType.Surfaces);
-
+            GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Select surface 4")) SelectVOI(3);
+                if (GUILayout.Button("Select surface 5")) SelectVOI(4);
+                if (GUILayout.Button("Select surface 6")) SelectVOI(5);
+            GUILayout.EndHorizontal();
         GUILayout.EndVertical(); 
     }
 
@@ -50,4 +53,8 @@ public class MultipleObjectsInteractionDemoOperatorOption : DemoOperatorOption
         
     }
 
+    private void SelectVOI(int i)
+    {
+        sceneManager.SelectSurface(i);
+    }
 }

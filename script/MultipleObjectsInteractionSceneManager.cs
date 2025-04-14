@@ -15,7 +15,6 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     public VOIBehaviour simulatedVOI; 
 
     [Header("PROPs")]
-    public Transform PROPsParent;
     public PROPBehaviour[] PROPs;
 
     public Dictionary<VOIType, PROPBehaviour> typeToPROP = new Dictionary<VOIType, PROPBehaviour>(); // To easly access the PROP of a certain type of VOIs. 
@@ -120,9 +119,17 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         if (simulatedVOI != null) UnhighlightVOI(simulatedVOI);
         simulatedVOI = randomVOI;
         HighlightVOI(simulatedVOI);
-        PositionColumnToVOI(randomVOI);
+        PositionColumnToVOI(simulatedVOI);
     }
 
+    public void SelectSurface(int i)
+    {
+        VOIBehaviour voi = typeToVOIs[VOIType.Surfaces][i];
+        if (simulatedVOI != null) UnhighlightVOI(simulatedVOI);
+        simulatedVOI = voi;
+        HighlightVOI(simulatedVOI);
+        PositionColumnToVOI(simulatedVOI);
+    }
     ///<summary>
     /// Returns a random VOI of a certain type. 
     ///</summary>
@@ -172,8 +179,8 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     {
         foreach (var prop in PROPs)
         {
-            if (typeToPROP.ContainsKey(prop.VOIType)) Debug.LogError("Warning : Multiple props uses with the same VOI Type.");
-            typeToPROP.Add(prop.VOIType, prop);
+            if (typeToPROP.ContainsKey(prop.voiType)) Debug.LogError("Warning : Multiple props uses with the same VOI Type.");
+            typeToPROP.Add(prop.voiType, prop);
         }
 
         foreach (var voi in VOIs)
