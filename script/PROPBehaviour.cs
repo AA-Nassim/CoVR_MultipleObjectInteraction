@@ -5,8 +5,10 @@ using UnityEngine.Events;
 
 /// <summary>
 /// A PROP is a real object tracked via Optitrack amrkers. 
-/// it has a type that defines which VOIs are simulated by this PROP. 
+/// A PROP can only simulate VOIs of the same voiType. 
 /// </summary>
+/// 
+[RequireComponent(typeof(Collider))]
 public class PROPBehaviour : MonoBehaviour
 {
     [Header("PROP Properties")]
@@ -21,7 +23,6 @@ public class PROPBehaviour : MonoBehaviour
     public bool isGrabbedWithLeftHand;
     public bool isGrabbedWithRightHand;
 
-    //Descrimination the Y Position
     public float heightErrorRange;
 
     public float grabHoldDuration = 0.5f;
@@ -32,11 +33,6 @@ public class PROPBehaviour : MonoBehaviour
     public UnityEvent onGrabEvents;
     public UnityEvent onReleaseEvents;
 
-    [Header("Debug")]
-    public MeshRenderer mesh; 
-    public Material grabbedMaterial; 
-    public Material notGrabbedMaterial; 
-
     private MultipleObjectsInteractionSceneManager sceneManager;
     private Transform initialParent; 
 
@@ -45,7 +41,7 @@ public class PROPBehaviour : MonoBehaviour
         sceneManager = MultipleObjectsInteractionSceneManager.Instance;
         if (sceneManager == null) Debug.LogError("No MultipleObjectsInteractionSceneManager found. ");
 
-        StartCoroutine(SaveInitialPosition());
+        StartCoroutine(SaveInitialPosition()); // Check the function summary to better understand
         initialParent = transform.parent;
     }
 
@@ -74,6 +70,10 @@ public class PROPBehaviour : MonoBehaviour
 
     /// <summary>
     /// This function updates the isGrabbed bool. And calls the OnGrab() and the OnRelease() events. 
+    /// The isGrabbed value is dependent of the  Y position of the PROP, the column position and if the prop is inside the column or not. 
+    /// if the column did not reach the target or the PROP is not inside the column we do not change the value of isGrabbed. 
+    /// else we check the Y pos of the PROP. If Y > intial Y + threshold then we assume it is grabbed else we assume it is not. 
+    /// We call the events if the value of isGrabbed changed. 
     /// </summary>
     private void UpdateGrab()
     {
@@ -115,7 +115,8 @@ public class PROPBehaviour : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the material
+    /// Links the adequate VOI to the PROP then calls the onGrabEvents. 
+    /// The adequate VOI is a VOI of the same type as the prop  and that is inside the column. 
     /// </summary>
     public void OnGrab()
     {
@@ -127,10 +128,14 @@ public class PROPBehaviour : MonoBehaviour
         onGrabEvents?.Invoke();
     }
 
+    /// <summary>
+    /// Unlinks the adequate VOI from the PROP then calls the onReleaseEvents. 
+    /// The adequate VOI is a VOI of the same type as the prop  and that is inside the column. 
+    /// </summary>
     public void OnRelease()
     {
-        print("OnRelease");
-        mesh.material = notGrabbedMaterial;
+  
+        
         //transform.SetParent(initialParent
         //AdjustVOIs(); 
 
@@ -140,6 +145,10 @@ public class PROPBehaviour : MonoBehaviour
         onReleaseEvents?.Invoke();
     }
 
+    /// <summary>
+    /// Moves the VOIs from the initial position to an offsetted position. 
+    /// The offset is calculate dbased on the PROP initial position and the center of the column. 
+    /// </summary>
     private void AdjustVOIs()
     {
         Vector3 posOffset = new Vector3(transform.position.x - sceneManager.column.position.x, 0, transform.position.z - sceneManager.column.position.z);
@@ -152,11 +161,15 @@ public class PROPBehaviour : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Saves the initial position of the PROP. 
+    /// </summary>
     private IEnumerator SaveInitialPosition()
     {
         yield return new WaitForSeconds(1);
+        // We use a couritne to wait for the first OptiTrack data. 
+        // Otherwise the onStart function is always equals to Vector3.zero which is the position of the prop in the scene. 
         initialPosition = transform.position;
-        IsActive = true;
         yield return null;
     }
 }

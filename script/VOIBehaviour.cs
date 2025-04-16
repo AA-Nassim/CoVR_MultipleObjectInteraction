@@ -3,6 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// A VOI is a virtual object that is simulated by a PROP. 
+/// </summary>
+/// 
 [RequireComponent(typeof(Collider))]
 public class VOIBehaviour : MonoBehaviour
 {
@@ -13,6 +17,7 @@ public class VOIBehaviour : MonoBehaviour
     public Vector3 initialPosition; 
 
     [Header("Weight properties")]
+    /// Weight if a value 
     public float weight;
     public float positionWeight;
     public float rotationWeight;
@@ -43,6 +48,10 @@ public class VOIBehaviour : MonoBehaviour
         isInsideColumn = false; 
     }
 
+    /// <summary>
+    /// We Use the OnTriggerEnter and OnTriggerExit functions to keep track if the VOI is inside the column or not. 
+    /// A collider is attached to the NavMesh Agent that moves with the column. 
+    /// </summary>
     private void OnTriggerEnter(Collider other)
     {
         if (voiType.Equals(VOIType.Surfaces)) return;
@@ -60,13 +69,19 @@ public class VOIBehaviour : MonoBehaviour
 
 
     #region Events
+    /// <summary>
+    /// Links the VOI to the PROP of the same Type. 
+    /// </summary>
+    /// <param name="localPos">Local position of the child. (offset to the Optitrack pivot.</param>
     public void LinkToPROP(Vector3 localPos)
     {
         transform.SetParent(sceneManager.typeToPROP[voiType].transform);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity; 
     }
-
+    /// <summary>
+    /// Unlink the VOI from the PROP. Resets the parent but keeps the position and the rotation. 
+    /// </summary>
     public void UnlinkFromPROP()
     {
         transform.SetParent(initialParent);
@@ -74,6 +89,12 @@ public class VOIBehaviour : MonoBehaviour
     #endregion
 
     #region Weight Calculation functions
+    /// <summary>
+    /// Calculates the weight of the VOI. 
+    /// The Weight of the VOI is a value from 0 to 1. 
+    /// It represents the probability that the user will interact with this VOI. 
+    /// </summary>
+    
     private void UpdateWeight()
     {
         float distanceWeight = CalculateDistanceWeight();

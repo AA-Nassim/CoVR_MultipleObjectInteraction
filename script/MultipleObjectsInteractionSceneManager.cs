@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/// <summary>
+/// A classic SceneManager. Acessible through a unique static instance. 
+/// 
+/// Regroups useful functions and variables used throught
+/// </summary>
 public class MultipleObjectsInteractionSceneManager : MonoBehaviour
 {
 
@@ -11,14 +17,14 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     public bool isReady = false; 
 
     [Header("VOIs")]
-    public VOIBehaviour[] VOIs; //For now I dragged and drop them but we can use GameObject.findgameobjectswithttag. 
+    public VOIBehaviour[] VOIs; 
     public VOIBehaviour simulatedVOI; 
 
     [Header("PROPs")]
     public PROPBehaviour[] PROPs;
 
-    public Dictionary<VOIType, PROPBehaviour> typeToPROP = new Dictionary<VOIType, PROPBehaviour>(); // To easly access the PROP of a certain type of VOIs. 
-    public Dictionary<VOIType, List<VOIBehaviour>> typeToVOIs = new Dictionary<VOIType, List<VOIBehaviour>>(); //Future TODO : For changing all the VOIs of a certain type based on the PROP orientation. 
+    public Dictionary<VOIType, PROPBehaviour> typeToPROP = new Dictionary<VOIType, PROPBehaviour>(); //Dict that takes a type and return the PROP of that type. 
+    public Dictionary<VOIType, List<VOIBehaviour>> typeToVOIs = new Dictionary<VOIType, List<VOIBehaviour>>(); // Dict that takes a Type and returns the list of VOIs of the same Type. 
 
     [Header("Column")]
     public MultipleObjectInteractionColumnBehaviour columnBehaviour;
@@ -66,8 +72,22 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         for (int i = 0; i < PROPs.Length; i++)
             PROPs[i] = PROPsGameObjects[i].GetComponent<PROPBehaviour>();
 
-        // Init dict
-        DictInit();
+        // setup dict
+        foreach (var prop in PROPs)
+        {
+            if (typeToPROP.ContainsKey(prop.voiType)) Debug.LogError("Warning : Multiple props uses with the same VOI Type.");
+            typeToPROP.Add(prop.voiType, prop);
+        }
+
+        foreach (var voi in VOIs)
+        {
+            if (typeToVOIs.ContainsKey(voi.voiType)) typeToVOIs[voi.voiType].Add(voi);
+            else
+            {
+                typeToVOIs[voi.voiType] = new List<VOIBehaviour>();
+                typeToVOIs[voi.voiType].Add(voi);
+            }
+        }
     }
 
     public void Start()
@@ -103,8 +123,6 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
             }
         }
 
-        
-
         return VOIs[minDistanceWeightID];
     }
 
@@ -112,7 +130,11 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     #endregion
 
     #region Scenario Systemique Functions
-
+    /// <summary>
+    /// Seleccts a random VOI. 
+    /// A seletion is setting up the simulatedVOI to the selected VOI, highlighting the VOI and positioning the column to the VOI. 
+    /// </summary>
+    /// <param name="type">Type of the wanted VOI</param>
     public void SelectRandomVOI(VOIType type)
     {
         VOIBehaviour randomVOI = GetRandomVOI(type);
@@ -122,6 +144,11 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         PositionColumnToVOI(simulatedVOI);
     }
 
+    /// <summary>
+    /// Select a surface VOI. 
+    /// A seletion is setting up the simulatedVOI to the selected VOI, highlighting the VOI and positioning the column to the VOI. 
+    /// </summary>
+    /// <param name="i">id of the VOI surface</param>
     public void SelectSurface(int i)
     {
         VOIBehaviour voi = typeToVOIs[VOIType.Surfaces][i];
@@ -130,6 +157,7 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
         HighlightVOI(simulatedVOI);
         PositionColumnToVOI(simulatedVOI);
     }
+    
     ///<summary>
     /// Returns a random VOI of a certain type. 
     ///</summary>
@@ -172,30 +200,4 @@ public class MultipleObjectsInteractionSceneManager : MonoBehaviour
     }
 
     #endregion
-
-    #region Private Methods
-
-    private void DictInit()
-    {
-        foreach (var prop in PROPs)
-        {
-            if (typeToPROP.ContainsKey(prop.voiType)) Debug.LogError("Warning : Multiple props uses with the same VOI Type.");
-            typeToPROP.Add(prop.voiType, prop);
-        }
-
-        foreach (var voi in VOIs)
-        {
-            if (typeToVOIs.ContainsKey(voi.voiType)) typeToVOIs[voi.voiType].Add(voi); 
-            else
-            {
-                typeToVOIs[voi.voiType] = new List<VOIBehaviour>();
-                typeToVOIs[voi.voiType].Add(voi); 
-            }
-        }
-    }
-
-    #endregion
-
-
-    
 }
