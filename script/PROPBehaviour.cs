@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// A PROP is a real object tracked via Optitrack amrkers. 
+/// it has a type that defines which VOIs are simulated by this PROP. 
+/// </summary>
 public class PROPBehaviour : MonoBehaviour
 {
     [Header("PROP Properties")]
@@ -51,6 +55,11 @@ public class PROPBehaviour : MonoBehaviour
         UpdateGrab();
     }
 
+
+    /// <summary>
+    /// We Use the OnTriggerEnter and OnTriggerExit functions to keep track if the PROP is inside the column or not. 
+    /// A collider is attached to the NavMesh Agent that moves with the column. 
+    /// </summary>
     private void OnTriggerEnter(Collider other)
     {
         if (voiType.Equals(VOIType.Surfaces)) return;
@@ -63,6 +72,9 @@ public class PROPBehaviour : MonoBehaviour
         isInsideColumn = false;
     }
 
+    /// <summary>
+    /// This function updates the isGrabbed bool. And calls the OnGrab() and the OnRelease() events. 
+    /// </summary>
     private void UpdateGrab()
     {
         if (!sceneManager.columnBehaviour.onTarget) return;
@@ -102,11 +114,12 @@ public class PROPBehaviour : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the material
+    /// </summary>
     public void OnGrab()
     {
-        print("OnGrab");
-        mesh.material = grabbedMaterial;
-        //transform.SetParent(sceneManager.leftHand);    
+        // TO DO : Ongrab link the PROP (this.transform) to the hand to keep the object moving even if optitrack doesn't detect the PROP.
 
         foreach (var voi in sceneManager.typeToVOIs[voiType])
             if (voi.isInsideColumn) voi.LinkToPROP(meshLocalPos);

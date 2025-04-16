@@ -2,19 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Events; 
+using UnityEngine.Events;
 
+/// <summary>
+/// This MonoBehaviour defins how the column moves. 
+/// It uses Unity's NavMeshAgent for pathfinding. 
+/// Warning : The NavMeshAgent's speed need to be setup to 0. This script will be moving the agent in order to match the agent's speed to the real column's speed. 
+/// There is a NavMeshObstacle setup in the player's area (The pathfindign system will take that into consideration and automatically avoid that area)    
+/// In the Update function we calculate a new target for the column position based on the player's position and rotation. 
+/// Once a new target found, we use the NavMesh pathfinding system to get the waypints.
+/// For each waypoint, we calculate a speedvector that we apply to the column using VP.
+/// </summary>
 public class MultipleObjectInteractionColumnBehaviour : MonoBehaviour
 {
-    /// <summary>
-    /// This MonoBehaviour defins how the column moves. 
-    /// It uses Unity's NavMeshAgent for pathfinding. 
-    /// Warning : The NavMeshAgent's speed need to be setup to 0. This script will be moving the agent in order to match the agent's speed to the real column's speed. 
-    /// There is a NavMeshObstacle setup in the player's area (The pathfindign system will take that into consideration and automatically avoid that area)    
-    /// In the Update function we calculate a new target for the column position based on the player's position and rotation. 
-    /// Once a new target found, we use the NavMesh pathfinding system to get the waypints.
-    /// For each waypoint, we calculate a speedvector that we apply to the column using VP.
-    /// </summary>
+    
 
 
     [Header("Behaviour properties")]
